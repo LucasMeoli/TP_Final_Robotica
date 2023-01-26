@@ -1,48 +1,78 @@
-%Funciï¿½n para calcular el likelikhood de la medicion de cada partï¿½cula
-%es llamada por robotics.ParticleFilter.correct()
-%Permite calcular el likelhood con el modelo de mediciï¿½n o con el error
-%cuadrï¿½tico medio
-%ï¿½Como tratar a los NaN?
-function likelihood = measurement_model(particle_filter,predicted_particles,measurement,varargin)
-    SIGMA_MODEL = 0.1;%0.5;
-    ANGLE_LENGTH = 171; %Me quedo con sï¿½lo estos angulos
+% Función para calcular el likelikhood de la medicion de cada partícula
+% es llamada por robotics.ParticleFilter.correct()
+% Permite calcular el likelhood con el modelo de medición o con el error
+% cuadrático medio
+% El mayor problema es como tratar los NaN
+function likelihood = measurement_model(particle_filter, predicted_particles, measurement,varargin)
+
+    SIGMA_MODEL = 0.1; %0.5;
+    % El sensor termina teniendo 171 mediciones, Juan lo reducia a 15
+    ANGLE_LENGTH = 171; 
     DOWNSample_FACTOR = ceil(length(measurement)/ANGLE_LENGTH);
+    
+    % Obtengo los datos del mapa (PO = 0.65 y PD = 0.2 ) 
     map = varargin{1};
+    % Obtengo el valor maximo de medicion que es 5 
     max_range = varargin{2};
-    
+    % Obtengo el metodo (mse = mean squared error)
     method = varargin{3};
-    
-    angles = linspace(-pi/2,pi/2,ANGLE_LENGTH); %Esto esta hardcodeado
+    % Creo el arreglo de 171 angulos que van desde -pi a pi
+    angles = linspace(-pi/2 ,pi/2 ,ANGLE_LENGTH); 
     
     %measurement = downsample(measurement,DOWNSample_FACTOR)
+    % inicializo el vector del likelihood
     likelihood = ones(particle_filter.NumParticles,1);
+    % Creo el vector de index (vector del 1 al 171)
     meas_index = (1:length(measurement))';
     
-    %En vez de interpolarlo linealmente a los nan. Los obtengo por el
-    %anterior o el siguiente en el arreglo de mediciones
-    measurement = fillmissing(measurement,'nearest'); 
+    % En vez de interpolarlo linealmente a los nan. Los obtengo por el
+    % anterior o el siguiente en el arreglo de mediciones
+    %measurement = fillmissing(measurement,'nearest'); 
+    %measurement = fillmissing(measurement,'linear');
+    
+    % El tema aca es que hacer con las mediciones que no son NaN, en nuestro
+    % caso suele darse cuando no hay medicion porque la pared esta a mas de
+    % 5 metros. En principio iguale eso con 5
+    %Opciones 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', 'pchip', 'movmean', or 'movmedian'
+    %measurement = fillmissing(measurement,'constant',5); 
+    measurement = fillmissing(measurement,'nearest');
     
     x_lims = map.XWorldLimits;
     y_lims = map.YWorldLimits;
     
+    % Se hace un bucle donde se pasa por cada una de las particulas del filtro
     for row = 1:particle_filter.NumParticles
         particle_position = predicted_particles(row,:);
-        if particle_position(1) <= x_lims(1) || particle_position(1) >= x_lims(2)...
-                ||  particle_position(2) <= y_lims(1) || particle_position(2) >= y_lims(2)   
+        
+        if particle_position(1) <= x_lims(1) || particle_position(1) >= x_lims(2) ||...
+           particle_position(2) <= y_lims(1) || particle_position(2) >= y_lims(2) 
+            % Si encuentran fuera de los limites entonces su likelihood = 0
             likelihood(row)=0;
-        elseif getOccupancy(map,particle_position(1:2)) < map.FreeThreshold
-            ray_intercept_point = rayIntersection(map,particle_position,angles,max_range);
+            
+        elseif getOccupancy(map, particle_position(1:2)) < map.FreeThreshold
+            % Si la particula se encuentra en una posicion libre ahi calculo
+            % su medicion, sino no ya que el robot no puede estar ahi
+            
+            % De cada particula simula rayos y devuelve la interseccion en
+            % coordenadas de la intereseccion con celdas ocupadas
+            ray_intercept_point = rayIntersection(map, particle_position, angles, max_range);
+            % Obtengo la distancia de la medicion a partir de las coordenadas
             particle_measurement = sqrt(sum((ray_intercept_point-particle_position(1:2)).^2,2));
+            % Transformo los Nan en el valor maximo de medicion
             particle_measurement(isnan(particle_measurement)) = max_range;
+            
             if method == "mse"
                 likelihood(row) = 1/immse(measurement,particle_measurement);
             elseif method == "gauss"
                 for index = 1:ANGLE_LENGTH
+                    
                     if ~isnan(measurement(index)) && ~isnan(particle_measurement(index)) 
                         likelihood(row) = likelihood(row)*(normpdf(measurement(index),particle_measurement(index),SIGMA_MODEL));
+                        
                     elseif ~(isnan(measurement(index)) && isnan(measurement(index))) 
                         %Si uno es NaN y el otro no bajo el likelihood
                        likelihood(row) = likelihood(row)*0.00000001; %Bajo likelihood
+                       
                     else
                         likelihood(row) = likelihood(row)*0.0000001;
 
@@ -51,7 +81,8 @@ function likelihood = measurement_model(particle_filter,predicted_particles,meas
             end
         else
             likelihood(row) = 0;
-        end
+        end % En del if primero
+        
         likelihood = likelihood;%Normalizo ->?
-    end
+    end % end del for
 end

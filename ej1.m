@@ -15,7 +15,7 @@ end
     
 
 %Objeto con constantes
-const=Constants;
+const = Constants;
 % creacion del Simulador de robot diferencial
 diff_drive_obj = DifferentialDrive(const.wheel_separation,const.wheel_separation); 
 
@@ -48,30 +48,36 @@ release(visualizer);
 
 %% Parametros de la Simulacion
 SIMULATION_DURATION = 3*60;          % Duracion total [s]
-INIT_POS = random_empty_point(map);         % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
-INIT_POS = [7; 4; -pi/2]; 
+% INIT_POS = random_empty_point(map);  % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
+%INIT_POS = [9; 9; -pi/2];           % Pose inicial dada por el profesor
+INIT_POS = [9; 9; -pi/2];           
 
 GOAL_A = [1.5,1.3];
 GOAL_B = [4.3,2.1];
-WAYPOINTS=[GOAL_A;GOAL_B];
+WAYPOINTS = [GOAL_A;GOAL_B];
 
-% Inicializar vectores de tiempo, entrada y pose
-time_vec = 0:const.sample_time:SIMULATION_DURATION;     % Vector de Tiempo para duracion total
-LOCATION_END = int32(60/const.sample_time);             %Iteraciones hasta ubicarse
+%% Inicializar vectores de tiempo, entrada y pose
+% Vector de Tiempo para duracion total
+time_vec = 0:const.sample_time:SIMULATION_DURATION;    
+%Iteraciones hasta ubicarse 
+% 60 se podria considerar como 3 vueltas sobre su ejere aproximadamente
+LOCATION_END = int32(40/const.sample_time);             
 pose = zeros(3,numel(time_vec));                        % Inicializar matriz de pose
 pose(:,1) = INIT_POS;
 
 %% Simulacion
 robot_sample_rate = robotics.Rate(1/const.sample_time); %Para Matlab R2018b e inferiores
 
-%Inicializo filtro de partículas
-x_lims=map.XWorldLimits;
-y_lims=map.YWorldLimits;
-POSITION_LIMITS = [x_lims(2),x_lims(1);y_lims(2),x_lims(1);pi,-pi];
-X_LIMS = x_lims;%[5,1];
-Y_LIMS = y_lims;%[5,0];
 
+x_lims = map.XWorldLimits;
+y_lims = map.YWorldLimits;
+POSITION_LIMITS = [x_lims(2), x_lims(1); 
+                   y_lims(2), x_lims(1); 
+                   pi, -pi];
+X_LIMS = x_lims;
+Y_LIMS = y_lims;
 
+%% %Inicializo filtro de partículas
 particle_filter = create_particle_filter();
 initialize(particle_filter,const.particle_number,POSITION_LIMITS)
 particle_filter.Particles = initialize_particles(particle_filter,map);
@@ -82,7 +88,7 @@ B_visited = true;
 localized = false;
 %%
 %Genero comandos para localizarse
-       % Velocidad angular a ser comandada
+% Velocidad angular a ser comandada
 state="Locate";
 v_ref = zeros(LOCATION_END,1);
 w_ref = const.angular_speed*ones(LOCATION_END,1);
