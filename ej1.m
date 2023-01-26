@@ -20,7 +20,16 @@ const=Constants;
 diff_drive_obj = DifferentialDrive(const.wheel_separation,const.wheel_separation); 
 
 %% Creacion del entorno
+
+
+%Mapa 2022 Primer Cuatrimestre
 MAP_IMG = 1-double(imread('mapa_2022_1c.tiff'))/255;
+
+%Mapa 2022 Segundo cuatrimestre
+load 2022b_tp_map.mat
+MAP_IMG = 1-double(imread('2022b_tp_map.tiff'))/255;
+
+
 map = robotics.OccupancyGrid(MAP_IMG, 25);
 
 %% Crear sensor lidar en simulador
@@ -39,14 +48,16 @@ release(visualizer);
 
 %% Parametros de la Simulacion
 SIMULATION_DURATION = 3*60;          % Duracion total [s]
-INIT_POS =random_empty_point(map);%[2.5; 1.5; -pi/2];         % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
+INIT_POS = random_empty_point(map);         % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
+INIT_POS = [7; 4; -pi/2]; 
+
 GOAL_A = [1.5,1.3];
 GOAL_B = [4.3,2.1];
 WAYPOINTS=[GOAL_A;GOAL_B];
 
 % Inicializar vectores de tiempo, entrada y pose
 time_vec = 0:const.sample_time:SIMULATION_DURATION;     % Vector de Tiempo para duracion total
-LOCATION_END = int32(20/const.sample_time);             %Iteraciones hasta ubicarse
+LOCATION_END = int32(60/const.sample_time);             %Iteraciones hasta ubicarse
 pose = zeros(3,numel(time_vec));                        % Inicializar matriz de pose
 pose(:,1) = INIT_POS;
 
@@ -61,13 +72,13 @@ X_LIMS = x_lims;%[5,1];
 Y_LIMS = y_lims;%[5,0];
 
 
-particle_filter=create_particle_filter();
+particle_filter = create_particle_filter();
 initialize(particle_filter,const.particle_number,POSITION_LIMITS)
-particle_filter.Particles=initialize_particles(particle_filter,map);
+particle_filter.Particles = initialize_particles(particle_filter,map);
 path_to_B = [4.5,5.5]; %Inicializo en un punto que no puede estar nunca para que no falle cuando hago una comparación. Después este valor se tira
 
-A_visited = false;
-B_visited = false;
+A_visited = true;
+B_visited = true;
 localized = false;
 %%
 %Genero comandos para localizarse
@@ -206,65 +217,9 @@ for time_step = 2:length(time_vec) % Itera sobre todo el tiempo de simulación
         end
     end
     
-    
-    %Ejecuta los comandos de velocidad mientras haya comandos
-    %Si llega a B sale va a exit, si realizó n correcciones va a plan path
-    % y si se quedo sin comandos va a
-                                    % execute path.
-    
-    
-    
-    %elseif length(w_ref) == time_step-1 %Tengo que mandar comandos 
-    %    if B_visited == true
-    %        disp 'Llegué al final';
-    %        disp(time_step);
-    %        break
-    %    end
-    %    plan_path = true;
-        %goal = WAYPOINTS(1,:); %Objetivo en metros
-    %    if correction_counter == 5
-    %        if A_visited == false
-    %            path_to_A = A_star(MAP_IMG,particle_filter.State(1:2),GOAL_A);
-    %            path = reduce_path(path_to_A);
-    %        else
-    %            path_to_B = A_star(MAP_IMG,particle_filter.State(1:2),GOAL_B);
-    %            path = reduce_path(path_to_B);
-    %        end
-    %        correction_counter=1;
-    %        j=1;
-    %    end
-    %    goal = path(j,:);
-    %    j = j+1;
-    %    display("Planeo ruta")
-    %    estimacion_estado = particle_filter.State;
-        
-    %    if plan_path == true  
-    %        plan_path = false;          
-    %        speed_cmd = generate_rotate_and_translation_cmd(const.angular_speed,const.angular_speed,estimacion_estado,goal,const.sample_time);
-    %        if goal(1,1) == path_to_A(end,1) && goal(1,2) == path_to_A(end,2)
-    %            A_visited = true;
-    %            speed_cmd = [speed_cmd;zeros(3/const.sample_time,2)];
-    %            disp 'Voy a esperar 3 segundos cuando llegue al A'
-    %            path_to_B = A_star(MAP_IMG,particle_filter.State(1:2),GOAL_B); %Creo trayectoria desde el punto A al punto B
-    %            path = reduce_path(path_to_B);
-    %            j=1;
-    %        end
-    %        if goal(1,1) == path_to_B(end,1) && goal(1,2) == path_to_B(end,2)
-    %            B_visited = true;
-    %        end
-    %        v_ref = [v_ref;speed_cmd(:,1)];
-    %        w_ref = [w_ref;speed_cmd(:,2)];
-    %    end
-    %else
-    %    particle_filter.predict(v_cmd,w_cmd,const.sample_time);
-    %     if mod(time_step,const.correction_interval)==0
-    %        particle_filter.correct(ranges,map,const.lidar_max_range,"gauss");
-    %        correction_counter = correction_counter+1;
-    %        particle_filter.Particles = generate_outliers(particle_filter,const.outliers_pct,map,X_LIMS,Y_LIMS);
-    %     end
-    %end
-
-    markings=[WAYPOINTS;particle_filter.State(1:2)];
+    show_particles = [particle_filter.Particles(:,1), particle_filter.Particles(:,2)];
+    markings = [WAYPOINTS; particle_filter.State(1:2); show_particles];
+    %markings = [WAYPOINTS; particle_filter.State(1:2)];
     visualizer(pose(:,time_step),markings,ranges)
     waitfor(robot_sample_rate);
     end

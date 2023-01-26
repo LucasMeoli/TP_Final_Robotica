@@ -1,7 +1,7 @@
 function [orientation_angle]=calculate_orientation(ranges,blocked_path,left)
     if ~left
         const=Constants;
-        ranges=fillmissing(ranges,'linear'); %Trato nan interpolando
+        ranges=fillmissing(ranges,'nearest'); %Trato nan interpolando
         ranges(ranges<0)=0;
 
         first_sample_index=1;
@@ -28,7 +28,7 @@ function [orientation_angle]=calculate_orientation(ranges,blocked_path,left)
     else
         %Orientation angle: Lo que queremos que rote 
         const=Constants;
-        ranges=fillmissing(ranges,'linear'); %Trato nan interpolando
+        ranges=fillmissing(ranges,'nearest'); %Trato nan interpolando
         ranges(ranges<0)=0;
 
         last_sample_index=length(ranges);
@@ -54,7 +54,7 @@ function [orientation_angle]=calculate_orientation(ranges,blocked_path,left)
 % function [orientation_angle,wall_normal_vector]=calculate_orientation(ranges,blocked_path)
 %     const=Constants;
 %     meas_index=(1:length(ranges))';
-%     ranges=fillmissing(ranges,'linear'); %Trato nan interpolando
+%     ranges=fillmissing(ranges,'nearest'); %Trato nan interpolando
 %     ranges(ranges<0)=0;
 %     %first_sample_index=1;
 %     %first_sample_angle=const.lidar_angle_start;
@@ -73,7 +73,7 @@ function [orientation_angle]=calculate_orientation(ranges,blocked_path,left)
 %     %orientation_angle=atan2(first_sample(2)-last_sample(2),first_sample(1)-last_sample(1));
 %     wall_normal_vector=find_normal_vector(first_sample,last_sample);
 %     orientation_angle=atan2(wall_normal_vector(2),wall_normal_vector(1));
-%     %%Ver cuando estemos más frescos
+%     %%Ver cuando estemos mï¿½s frescos
 %     if abs(angdiff(orientation_angle,0))>pi/2
 %         orientation_angle=angdiff(orientation_angle,pi);
 %     end

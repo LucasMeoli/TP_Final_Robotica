@@ -1,6 +1,6 @@
 function wall_orientation =wall_orientation_angle(ranges)
 const=Constants;
-    ranges=fillmissing(ranges,'linear'); %Trato nan interpolando
+    ranges=fillmissing(ranges,'nearest'); %Trato nan interpolando
     ranges(ranges<0)=0;
     first_sample_index=1;
     first_sample_angle=const.lidar_angle_start;
