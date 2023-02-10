@@ -23,10 +23,10 @@ diff_drive_obj = DifferentialDrive(const.wheel_separation,const.wheel_separation
 
 
 %Mapa 2022 Primer Cuatrimestre
-MAP_IMG = 1-double(imread('mapa_2022_1c.tiff'))/255;
+%MAP_IMG = 1-double(imread('mapa_2022_1c.tiff'))/255;
 
 %Mapa 2022 Segundo cuatrimestre
-load 2022b_tp_map.mat
+%load 2022b_tp_map.mat
 MAP_IMG = 1-double(imread('2022b_tp_map.tiff'))/255;
 
 
@@ -48,9 +48,9 @@ release(visualizer);
 
 %% Parametros de la Simulacion
 SIMULATION_DURATION = 3*60;          % Duracion total [s]
-% INIT_POS = random_empty_point(map);  % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
+INIT_POS = random_empty_point(map);  % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
 %INIT_POS = [9; 9; -pi/2];           % Pose inicial dada por el profesor
-INIT_POS = [9; 9; -pi/2];           
+%INIT_POS = [5; 2.3; -pi/2];           
 
 GOAL_A = [1.5,1.3];
 GOAL_B = [4.3,2.1];

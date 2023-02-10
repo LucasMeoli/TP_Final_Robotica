@@ -21,7 +21,8 @@ diff_drive_obj = DifferentialDrive(const.wheel_separation,const.wheel_separation
        % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
 
 %% Creacion del entorno
-MAP_IMG = 1-double(imread('mapa_2022_1c.tiff'))/255;
+load 2022b_tp_map.mat
+MAP_IMG = 1-double(imread('2022b_tp_map.tiff'))/255;
 map = robotics.OccupancyGrid(MAP_IMG, 25);
 %% Parametros de la Simulacion
 SIMULATION_DURATION = 3*60;          % Duracion total [s]
