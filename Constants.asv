@@ -29,7 +29,7 @@
          particle_filter_resampling_interval = 1;   % Pasos de correccion a realizar antes de remuestrear
          correction_interval = 15;                  % Cantidad de pasos de predicción (movimientos) hasta realizar una correccion
          outliers_pct = 0.03;                       % Porcentaje de partículas que se generan aletoriamente
-         outilers_time_pct = 0.6                    % Porcentaje de tiempo en que se general particulas aleatoriamente
+         outilers_time_pct = 0.6                    % Porcentaje de tiempo en que se gener
          
         %Modelo de medicion (No implementado)
          gaussian_model_sigma=0.1;               %Desvío estándar del modelo gaussiano
