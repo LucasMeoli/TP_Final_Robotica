@@ -42,6 +42,7 @@ lidar.maxRange = const.lidar_max_range;
 %% Crear visualizacion
 visualizer = Visualizer2D();
 visualizer.hasWaypoints=true;
+visualizer.hasParticles=true;
 visualizer.mapName = 'map';
 attachLidarSensor(visualizer,lidar);
 release(visualizer);
@@ -49,8 +50,8 @@ release(visualizer);
 %% Parametros de la Simulacion
 SIMULATION_DURATION = 3*60;          % Duracion total [s]
 INIT_POS = random_empty_point(map);  % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
-%INIT_POS = [9; 9; -pi/2];           % Pose inicial dada por el profesor
-INIT_POS = [9; 15; -pi/2];           
+INIT_POS = [9; 9; -pi/2];           % Pose inicial dada por el profesor
+%INIT_POS = [9; 15; -pi/2];           
 
 GOAL_A = [1.5,1.3];
 GOAL_B = [4.3,2.1];
@@ -61,7 +62,7 @@ WAYPOINTS = [GOAL_A;GOAL_B];
 time_vec = 0:const.sample_time:SIMULATION_DURATION;    
 %Iteraciones hasta ubicarse 
 % 60 se podria considerar como 3 vueltas sobre su ejere aproximadamente
-LOCATION_END = int32(30/const.sample_time);             
+LOCATION_END = int32(40/const.sample_time);             
 pose = zeros(3,numel(time_vec));                        % Inicializar matriz de pose
 pose(:,1) = INIT_POS;
 
@@ -231,9 +232,9 @@ for time_step = 2:length(time_vec) % Itera sobre todo el tiempo de simulación
         end
     end
     
-    %show_particles = [particle_filter.Particles(:,1), particle_filter.Particles(:,2)];
+    show_particles = [particle_filter.Particles(:,1), particle_filter.Particles(:,2)];
     %markings = [WAYPOINTS; particle_filter.State(1:2); show_particles];
     markings = [WAYPOINTS; particle_filter.State(1:2)];
-    visualizer(pose(:,time_step),markings,ranges)
+    visualizer(pose(:,time_step),markings,show_particles,ranges)
     waitfor(robot_sample_rate);
     end
