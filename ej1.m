@@ -51,7 +51,7 @@ release(visualizer);
 SIMULATION_DURATION = 3*60;          % Duracion total [s]
 INIT_POS = random_empty_point(map);  % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
 INIT_POS = [9; 9; -pi/2];           % Pose inicial dada por el profesor
-%INIT_POS = [9; 15; -pi/2];           
+INIT_POS = [9; 15; -pi/2];           
 
 GOAL_A = [1.5,1.3];
 GOAL_B = [4.3,2.1];
@@ -235,6 +235,6 @@ for time_step = 2:length(time_vec) % Itera sobre todo el tiempo de simulación
     show_particles = [particle_filter.Particles(:,1), particle_filter.Particles(:,2)];
     %markings = [WAYPOINTS; particle_filter.State(1:2); show_particles];
     markings = [WAYPOINTS; particle_filter.State(1:2)];
-    visualizer(pose(:,time_step),markings,show_particles,ranges)
+    visualizer(pose(:,time_step), show_particles, markings, ranges)
     waitfor(robot_sample_rate);
     end

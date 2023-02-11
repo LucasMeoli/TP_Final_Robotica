@@ -18,8 +18,8 @@ classdef Visualizer2D < matlab.System & matlab.system.mixin.CustomIcon
     end     
     properties(Nontunable, Logical)
         showTrajectory = true;      % Show trajectory
-        hasWaypoints = false;       % Accept waypoints
-        hasParticles = false;
+        hasParticles = false;       % Accept Particles
+        hasWaypoints = false;      % Accept waypoints
         hasLidar = false;           % Accept lidar inputs
     end
     properties
@@ -98,15 +98,16 @@ classdef Visualizer2D < matlab.System & matlab.system.mixin.CustomIcon
                 obj.TrajHandle = plot(obj.ax,0,0,'b.-');
             end
             
+            % Initialize particles
+            if obj.hasParticles
+                obj.ParticleHandle = plot(obj.ax,0,0, ...
+                   'm.','MarkerSize',10,'LineWidth',2);
+            end
+            
             % Initialize waypoints
             if obj.hasWaypoints
                 obj.WaypointHandle = plot(obj.ax,0,0, ...
                    'rx','MarkerSize',10,'LineWidth',2);
-            end
-            
-            if obj.hasParticles
-                obj.ParticleHandle = plot(obj.ax,0,0, ...
-                   'm.','MarkerSize',10,'LineWidth',2);
             end
             
             % Initialize lidar lines
@@ -152,12 +153,12 @@ classdef Visualizer2D < matlab.System & matlab.system.mixin.CustomIcon
             
             % Unpack the optional arguments
             idx = 1;
-            if obj.hasWaypoints % Waypoints
-                waypoints = varargin{idx};
-                idx = idx + 1;
-            end
             if obj.hasParticles % Particles
                 particles = varargin{idx};
+                idx = idx + 1;
+            end
+            if obj.hasWaypoints % Waypoints
+                waypoints = varargin{idx};
                 idx = idx + 1;
             end
             if obj.hasLidar % Lidar ranges
@@ -175,15 +176,16 @@ classdef Visualizer2D < matlab.System & matlab.system.mixin.CustomIcon
                set(obj.TrajHandle,'xdata',obj.trajX,'ydata',obj.trajY);
             end
             
+            % Update particles
+            if obj.hasParticles && numel(particles) > 1
+                set(obj.ParticleHandle,'xdata',particles(:,1), ...
+                                       'ydata',particles(:,2));
+            end
+            
             % Update waypoints
             if obj.hasWaypoints && numel(waypoints) > 1
                 set(obj.WaypointHandle,'xdata',waypoints(:,1), ...
                                        'ydata',waypoints(:,2));
-            end
-            
-            if obj.hasParticles && numel(particles) > 1
-                set(obj.ParticleHandle,'xdata',particles(:,1), ...
-                                       'ydata',particles(:,2));
             end
 
             % Update the robot pose
@@ -317,10 +319,10 @@ classdef Visualizer2D < matlab.System & matlab.system.mixin.CustomIcon
         % Define total number of inputs for system with optional inputs
         function num = getNumInputsImpl(obj)
             num = 1;
-            if obj.hasWaypoints
+            if obj.hasParticles
                num = num + 1; 
             end
-            if obj.hasParticles
+            if obj.hasWaypoints
                num = num + 1; 
             end
             if obj.hasLidar
@@ -335,12 +337,12 @@ classdef Visualizer2D < matlab.System & matlab.system.mixin.CustomIcon
         function [namePose,varargout] = getInputNamesImpl(obj)
             namePose = 'pose';
             idx = 1;
-            if obj.hasWaypoints
-               varargout{idx} = 'waypoints';
-               idx = idx + 1;
-            end
             if obj.hasParticles
                varargout{idx} = 'particles';
+               idx = idx + 1;
+            end
+            if obj.hasWaypoints
+               varargout{idx} = 'waypoints';
                idx = idx + 1;
             end
             if obj.hasLidar

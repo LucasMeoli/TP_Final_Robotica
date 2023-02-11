@@ -25,7 +25,7 @@
          %location_end_iteration=int32(20/sample_time);   %Iteración donde finalizó la localización [iteraciones]
          
         %Filtro de partículas
-         particle_number = 300;                     % Cantidad de particulas [particulas]
+         particle_number = 700;                     % Cantidad de particulas [particulas]
          particle_filter_resampling_interval = 1;   % Pasos de correccion a realizar antes de remuestrear
          correction_interval = 15;                  % Cantidad de pasos de predicción (movimientos) hasta realizar una correccion
          outliers_pct = 0.03;                       % Porcentaje de partículas que se generan aletoriamente

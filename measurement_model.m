@@ -7,19 +7,21 @@ function likelihood = measurement_model(particle_filter, predicted_particles, me
 
     SIGMA_MODEL = 0.1; %0.5;
     % El sensor termina teniendo 171 mediciones, Juan lo reducia a 15
-    ANGLE_LENGTH = 171; 
+    ANGLE_LENGTH = 15; 
     DOWNSample_FACTOR = ceil(length(measurement)/ANGLE_LENGTH);
     
     % Obtengo los datos del mapa (PO = 0.65 y PD = 0.2 ) 
     map = varargin{1};
     % Obtengo el valor maximo de medicion que es 5 
     max_range = varargin{2};
-    % Obtengo el metodo (mse = mean squared error)
-    method = varargin{3};
-    % Creo el arreglo de 171 angulos que van desde -pi a pi
-    angles = linspace(-pi/2 ,pi/2 ,171); 
-    
+  
+    % Disminuyo la cantidad de mediciones para reducir el tiempo
     measurement = downsample(measurement,DOWNSample_FACTOR);
+    
+    length(measurement)
+    % Creo el arreglo deangulos desde -pi a pi con igual cantidad de
+    % muestras las mediciones resampleadas
+    angles = linspace(-pi/2 ,pi/2 , length(measurement)); 
     % inicializo el vector del likelihood
     likelihood = ones(particle_filter.NumParticles,1);
     % Creo el vector de index (vector del 1 al 171)
@@ -59,27 +61,11 @@ function likelihood = measurement_model(particle_filter, predicted_particles, me
             particle_measurement = sqrt(sum((ray_intercept_point-particle_position(1:2)).^2,2));
             % Transformo los Nan en el valor maximo de medicion
             particle_measurement(isnan(particle_measurement)) = max_range;
+            %particle_measurement = downsample(particle_measurement,DOWNSample_FACTOR);
             
-            particle_measurement = downsample(particle_measurement,DOWNSample_FACTOR);
-
-            if method == "mse"
-                likelihood(row) = 1/immse(measurement,particle_measurement);
-            elseif method == "gauss"
-                for index = 1:ANGLE_LENGTH
-                    
-                    if ~isnan(measurement(index)) && ~isnan(particle_measurement(index)) 
-                        likelihood(row) = likelihood(row)*(normpdf(measurement(index),particle_measurement(index),SIGMA_MODEL));
-                        
-                    elseif ~(isnan(measurement(index)) && isnan(measurement(index))) 
-                        %Si uno es NaN y el otro no bajo el likelihood
-                       likelihood(row) = likelihood(row)*0.00000001; %Bajo likelihood
-                       
-                    else
-                        likelihood(row) = likelihood(row)*0.0000001;
-
-                    end
-                end
-            end
+            %length(particle_measurement)
+            %length(measurement)
+            likelihood(row) = 1/immse(measurement,particle_measurement);
         else
             likelihood(row) = 0;
         end % En del if primero
