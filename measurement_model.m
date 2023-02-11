@@ -18,7 +18,6 @@ function likelihood = measurement_model(particle_filter, predicted_particles, me
     % Disminuyo la cantidad de mediciones para reducir el tiempo
     measurement = downsample(measurement,DOWNSample_FACTOR);
     
-    length(measurement)
     % Creo el arreglo deangulos desde -pi a pi con igual cantidad de
     % muestras las mediciones resampleadas
     angles = linspace(-pi/2 ,pi/2 , length(measurement)); 
