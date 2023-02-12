@@ -143,7 +143,9 @@ for time_step = 2:length(time_vec)
         elseif min_distance < const.obstacle_threshold
         % Si un objeto se encuentra a menos de 50 cm cambio de direccion
             state = "rotate";
-            [orientation_angle] = calculate_orientation(ranges,path_blocked,left);
+            fprintf("Estoy aca");
+            [orientation_angle] = calculate_orientation(ranges,path_blocked,left)
+            left
             path_blocked = true;
         end
     end
@@ -161,13 +163,12 @@ for time_step = 2:length(time_vec)
         
     end
     
-%     if time_step==900 && ~left 
-%         state="rotate";
-%         orientation_angle=-pi;
-%         left = false
-%         correct_orientation=false;
-%     end
-    
+    if time_step==900 && ~left 
+        state="rotate";
+        orientation_angle=-pi;
+        left = false
+        correct_orientation=false;
+    end
     if state=="move forward" 
         state;
         distance=min_distance;%distancia/sample_time=iteraciones
