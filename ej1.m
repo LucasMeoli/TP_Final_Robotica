@@ -5,6 +5,9 @@ close all
 clear all
 clc 
 
+addpath utils
+addpath functions
+
 SIMULATE_LIDAR_NOISE = true; %simula datos no validos del lidar real, probar si se la banca
 USE_ROOMBA = false;  % false para desarrollar usando el simulador, true para conectarse al robot real
 
@@ -23,11 +26,11 @@ diff_drive_obj = DifferentialDrive(const.wheel_separation,const.wheel_separation
 
 
 %Mapa 2022 Primer Cuatrimestre
-%MAP_IMG = 1-double(imread('mapa_2022_1c.tiff'))/255;
+%MAP_IMG = 1-double(imread('maps/mapa_2022_1c.tiff'))/255;
 
 %Mapa 2022 Segundo cuatrimestre
 %load 2022b_tp_map.mat
-MAP_IMG = 1-double(imread('2022b_tp_map.tiff'))/255;
+MAP_IMG = 1-double(imread('maps/2022b_tp_map.tiff'))/255;
 
 
 map = robotics.OccupancyGrid(MAP_IMG, 25);

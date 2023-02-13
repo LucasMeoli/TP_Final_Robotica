@@ -5,6 +5,9 @@ close all
 clear all
 clc 
 
+addpath utils
+addpath functions
+
 SIMULATE_LIDAR_NOISE = false; %simula datos no validos del lidar real, probar si se la banca
 USE_ROOMBA = false;  % false para desarrollar usando el simulador, true para conectarse al robot real
 
@@ -21,8 +24,8 @@ diff_drive_obj = DifferentialDrive(const.wheel_separation,const.wheel_separation
        % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
 
 %% Creacion del entorno
-load 2022b_tp_map.mat
-MAP_IMG = 1-double(imread('2022b_tp_map.tiff'))/255;
+load maps/2022b_tp_map.mat
+MAP_IMG = 1-double(imread('maps/2022b_tp_map.tiff'))/255;
 map = robotics.OccupancyGrid(MAP_IMG, 25);
 %% Parametros de la Simulacion
 SIMULATION_DURATION = 3*60;          % Duracion total [s]
