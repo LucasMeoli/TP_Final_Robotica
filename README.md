@@ -7,4 +7,5 @@ Cambiando el valor de use_roomba a true puede usarse con el robot real.
 
 ## Ejercicios
 Desafío 1: El regreso a casa
+
 Desafío 2: Partiendo a lo desconocido
