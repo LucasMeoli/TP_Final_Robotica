@@ -31,7 +31,7 @@ classdef Visualizer2D < matlab.System & matlab.system.mixin.CustomIcon
         hasObjDetector = false;     % Accept object detections
     end
     properties(Nontunable)
-                         % Ver en que iteración estos mostrando
+                         % Ver en que iteraciï¿½n estos mostrando
        objDetectorOffset = [0 0];   % Object detector offset (x,y) [m] 
        objDetectorAngle = 0;        % Object detector angle [rad]
        objDetectorFOV = pi/4;       % Object detector field of view [rad] 
@@ -76,7 +76,7 @@ classdef Visualizer2D < matlab.System & matlab.system.mixin.CustomIcon
             hold(obj.ax,'on');
             
             % Show the map
-            obj.map = internal.createMapFromName(obj.mapName);
+            obj.map = createMapFromName(obj.mapName);
             if ~isempty(obj.map)
                 show(obj.map,'Parent',obj.ax);
             end
