@@ -1,5 +1,5 @@
 %% Robot diferencial con lidar
-% Rob�tica M�vil - 2022 2c
+% Robotica Movil - 2022 2c
 close all
 clear all
 clc 
@@ -9,7 +9,7 @@ addpath functions
 
 SIMULATE_LIDAR_NOISE = true;                    % Simula datos no validos del lidar real, probar si se la banca
 USE_ROOMBA = false;                             % False para desarrollar usando el simulador, true para conectarse al robot real
-DEBUG = false;                                  % Imprime logs útiles para debugging
+DEBUG = false;                                  % Imprime logs utiles para debugging
 
 %% Roomba
 
@@ -36,7 +36,7 @@ MAP_IMG = 1-double(imread('maps/2022b_tp_map.tiff'))/255;
 
 map = robotics.OccupancyGrid(MAP_IMG, 25);
 
-% Límites del mapa
+% Limites del mapa
 x_lims = map.XWorldLimits;
 y_lims = map.YWorldLimits;
 POSITION_LIMITS = [x_lims(2), x_lims(1); 
@@ -53,7 +53,7 @@ lidar.scanAngles = linspace(const.lidar_angle_start, const.lidar_angle_end, NUM_
 lidar.maxRange = const.lidar_max_range;
 
 
-%% Crear visualizaci�n
+%% Crear visualizacion
 
 visualizer = Visualizer2D();
 visualizer.hasWaypoints=true;
@@ -63,7 +63,7 @@ attachLidarSensor(visualizer, lidar);
 release(visualizer);
 
 
-%% Par�metros de la simulaci�n
+%% Parametros de la simulacio�n
 
 SIMULATION_DURATION = 3*60;                     % Duracion total [s]
 INIT_POS = random_empty_point(map);             % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
@@ -79,18 +79,18 @@ WAYPOINTS = [GOAL_A];
 
 % Vector de Tiempo para duracion total
 time_vec = 0:const.sample_time:SIMULATION_DURATION;    
-%Iteraciones hasta ubicarse 
+% Iteraciones hasta ubicarse 
 % 60 se podria considerar como 3 vueltas sobre su ejere aproximadamente
 LOCATION_END = int32(40/const.sample_time);             
 pose = zeros(3, numel(time_vec));                % Inicializar matriz de pose
 pose(:, 1) = INIT_POS;
 
 
-%% Simulaci�n
+%% Simulacion
 
 robot_sample_rate = robotics.Rate(1/const.sample_time);     % Para Matlab R2018b e inferiores
 
-% Inicializo filtro de partículas
+% Inicializo filtro de particulas
 particle_filter = create_particle_filter();
 initialize(particle_filter, const.particle_number, POSITION_LIMITS)
 particle_filter.Particles = initialize_particles(particle_filter, map);
@@ -105,8 +105,8 @@ v_cmd = 0;
 w_cmd = 0;
 correction_counter = 1;
 
-% Máquina de estados
-for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de simulaci�n
+% Maquina de estados
+for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de simulacion
     
     switch state
 
@@ -119,7 +119,7 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
             state = "Execute command";
         
         % Ejecuta los comandos de velocidad mientras haya comandos
-        % Si llega a B sale va a exit, si realiz� n correcciones va a plan path y si se quedo sin comandos va a execute path.
+        % Si llega a B sale va a exit, si realizo n correcciones va a plan path y si se quedo sin comandos va a execute path.
         case "Execute command"
             if DEBUG
                 state
@@ -170,7 +170,7 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
                 state
             end
 
-            if path_counter <= length(path)               % Si termin� de realizar el camino vuelve a plan path, si va a execute command 
+            if path_counter <= length(path)               % Si termino de realizar el camino vuelve a plan path, si va a execute command 
                 desired_location = path(path_counter,:);
                 speed_cmd = generate_rotate_and_translation_cmd(const.angular_speed,const.angular_speed,robot_pos,desired_location,const.sample_time);
                 v_ref = [v_ref;speed_cmd(:,1)];
@@ -211,7 +211,7 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
         cmdMsg.Angular.Z = w_cmd;
         send(cmdPub,cmdMsg);
         
-        % Recibir datos de lidar y odometría
+        % Recibir datos de lidar y odometria
         scanMsg = receive(laserSub);
         odompose = odomSub.LatestMessage;
         
@@ -220,7 +220,7 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
         ranges = ranges_full(1:const.lidar_downsample_factor:end);
         %ranges = circshift(ranges,length(ranges)/2);  % verificar
         ranges(ranges==0)=NaN; % lecturas erroneas y maxrange
-        % Obtener pose del robot [x,y,yaw] de datos de odometr�a (integrado por encoders).
+        % Obtener pose del robot [x,y,yaw] de datos de odometria (integrado por encoders).
         odomQuat = [odompose.Pose.Pose.Orientation.W, odompose.Pose.Pose.Orientation.X, ...
         odompose.Pose.Pose.Orientation.Y, odompose.Pose.Pose.Orientation.Z];
         odomRotation = quat2eul(odomQuat);
@@ -233,7 +233,7 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
         [wL,wR] = inverseKinematics(diff_drive_obj,v_cmd,w_cmd);
         % Velocidad resultante
         [v,w] = forwardKinematics(diff_drive_obj,wL,wR);
-        vel_robot = [v;0;w]; % velocidades en la terna del robot [vx;vy;w]
+        vel_robot = [v;0;w]; % Velocidades en la terna del robot [vx;vy;w]
         vel_world = bodyToWorld(vel_robot,pose(:,time_step-1));  % Conversion de la terna del robot a la global
         % Realizar un paso de integracion
         if state == "Execute command"
