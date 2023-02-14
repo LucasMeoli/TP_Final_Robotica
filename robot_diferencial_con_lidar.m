@@ -1,5 +1,5 @@
 %% Robot diferencial con lidar
-% Robotica Movil - 2022 1c
+% Robotica Movil - 2022 2c
 close all
 clear all
 
@@ -12,7 +12,7 @@ use_roomba=false;  % false para desarrollar usando el simulador, true para conec
 if use_roomba   % si se usa el robot real, se inicializa la conexion    
     rosshutdown
     pause(1)
-    ipaddress_core = '192.168.0.101';
+    ipaddress_core = '192.168.0.102';
     ipaddress_local = '192.168.0.100';  %mi ip en a red TurtleNet
     setenv('ROS_IP', '192.168.0.100');
     setenv('ROS_MASTER_URI', ['http://', ipaddress_core, ':11311']);
@@ -32,29 +32,30 @@ L = 0.235;                  % Distancia entre ruedas [m]
 dd = DifferentialDrive(R,L); % creacion del Simulador de robot diferencial
 
 %% Creacion del entorno
-load 2021_2c_tp_map.mat     %carga el mapa como occupancyMap en la variable 'map'
+load 2022b_tp_map.mat     %carga el mapa como occupancyMap en la variable 'map'
+% load mapa_2022_1c.mat   %mapa viejo para probar cosas
 
-%if verMatlab.Release=='(R2016b)'
+if verMatlab.Release=='(R2016b)'
     %Para versiones anteriores de MATLAB, puede ser necesario ajustar mapa
-imagen_mapa = 1-double(imread('imagen_2021_2c_mapa_tp.tiff'))/255;
-map = robotics.OccupancyGrid(imagen_mapa, 25);
-%elseif verMatlab.Release(1:5)=='(R2018a)'    % Completar con la version que tengan
+    imagen_mapa = 1-double(imread('2022b_tp_map.tiff'))/255;
+    map = robotics.OccupancyGrid(imagen_mapa, 25);
+elseif verMatlab.Release(1:5)=='(R201'    % Completar con la version que tengan
     %Ni idea que pasa, ver si el truco R2016b funciona
-    %disp('ver si la compatibilidad R2016b funciona');
-%else
-    %disp(['Utilizando MATLAB ', verMatlab.Release]);
-%end
+    disp('ver si la compatibilidad R2016b funciona');
+else
+    disp(['Utilizando MATLAB ', verMatlab.Release]);
+end
 
 %% Crear sensor lidar en simulador
 lidar = LidarSensor;
 lidar.sensorOffset = [0,0];   % Posicion del sensor en el robot (asumiendo mundo 2D)
-scaleFactor = 5;                %decimar lecturas de lidar acelera el algoritmo
+scaleFactor = 3;                %decimar lecturas de lidar acelera el algoritmo
 num_scans = 513/scaleFactor;
 hokuyo_step_a = deg2rad(-90);
 hokuyo_step_c = deg2rad(90);
 
 lidar.scanAngles = linspace(hokuyo_step_a,hokuyo_step_c,num_scans);
-lidar.maxRange = 10;
+lidar.maxRange = 5;
 
 %% Crear visualizacion
 viz = Visualizer2D;
@@ -63,25 +64,31 @@ attachLidarSensor(viz,lidar);
 
 %% Parametros de la Simulacion
 
-simulationDuration = 3*60;          % Duracion total [s]
+simulationDuration = 60; %3*60;     % Duracion total [s]
 sampleTime = 0.1;                   % Sample time [s]
-initPose = [2; 2.5; -pi/2];         % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
-
-% Inicializar vectores de tiempo, entrada y pose
+initPose = [9; 9; -pi/2];           % Pose inicial (x y theta) del robot simulado (el robot puede arrancar en cualquier lugar valido del mapa)
+                                    %  probar iniciar el robot en distintos lugares                                  
+                                  
+% Inicializar vectores de tiempo:
 tVec = 0:sampleTime:simulationDuration;         % Vector de Tiempo para duracion total
 
 %% generar comandos a modo de ejemplo
-vxRef = 0.05*ones(size(tVec));   % Velocidad lineal a ser comandada
+vxRef = 0.1*ones(size(tVec));   % Velocidad lineal a ser comandada
 wRef = zeros(size(tVec));       % Velocidad angular a ser comandada
-wRef(tVec < 5) = -0.2;
-wRef(tVec >=7.5) = 0.2;
+wRef(tVec < 5) = -0.1;
+wRef(tVec >=7.5) = 0.1;
 
 pose = zeros(3,numel(tVec));    % Inicializar matriz de pose
 pose(:,1) = initPose;
 
 %% Simulacion
 
-r = robotics.Rate(1/sampleTime); %Para Matlab R2018b e inferiores
+if verMatlab.Release=='(R2016b)'
+    r = robotics.Rate(1/sampleTime);    %matlab viejo no tiene funcion rateControl
+else
+    r = rateControl(1/sampleTime);  %definicion para R2020a, y posiblemente cualquier version nueva
+end
+
 for idx = 2:numel(tVec)   
 
     % Generar aqui criteriosamente velocidades lineales v_cmd y angulares w_cmd
@@ -112,7 +119,6 @@ for idx = 2:numel(tVec)
         % Obtener vector de distancias del lidar
         ranges_full = laserSub.LatestMessage.Ranges;
         ranges = ranges_full(1:scaleFactor:end);
-        %ranges = circshift(ranges,length(ranges)/2);  % verificar
         ranges(ranges==0)=NaN; % lecturas erroneas y maxrange
         % Obtener pose del robot [x,y,yaw] de datos de odometría (integrado por encoders).
         odomQuat = [odompose.Pose.Pose.Orientation.W, odompose.Pose.Pose.Orientation.X, ...

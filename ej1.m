@@ -1,12 +1,15 @@
 %% Robot diferencial con lidar
-% Robotica Movil - 2022 1c
-% Funciona con MATLAB R2018a
+% RobÃ³tica MÃ³vil - 2022 2c
 close all
 clear all
 clc 
 
+addpath utils
+addpath functions
+
 SIMULATE_LIDAR_NOISE = true; %simula datos no validos del lidar real, probar si se la banca
 USE_ROOMBA = false;  % false para desarrollar usando el simulador, true para conectarse al robot real
+
 
 %% Roomba
 if USE_ROOMBA   % si se usa el robot real, se inicializa la conexion    
@@ -14,21 +17,19 @@ if USE_ROOMBA   % si se usa el robot real, se inicializa la conexion
 end
     
 
-%Objeto con constantes
+%% Definiciones del robot
 const = Constants;
 % creacion del Simulador de robot diferencial
 diff_drive_obj = DifferentialDrive(const.wheel_separation,const.wheel_separation); 
 
+
 %% Creacion del entorno
+% Mapa 2022 Primer Cuatrimestre
+% MAP_IMG = 1-double(imread('maps/imagen_2021_2c_mapa_tp.tiff'))/255;
 
-
-%Mapa 2022 Primer Cuatrimestre
-%MAP_IMG = 1-double(imread('mapa_2022_1c.tiff'))/255;
-
-%Mapa 2022 Segundo cuatrimestre
-%load 2022b_tp_map.mat
-MAP_IMG = 1-double(imread('2022b_tp_map.tiff'))/255;
-
+% Mapa 2022 Segundo cuatrimestre
+% load 2022b_tp_map.mat
+MAP_IMG = 1-double(imread('maps/2022b_tp_map.tiff'))/255;
 
 map = robotics.OccupancyGrid(MAP_IMG, 25);
 
@@ -78,7 +79,7 @@ POSITION_LIMITS = [x_lims(2), x_lims(1);
 X_LIMS = x_lims;
 Y_LIMS = y_lims;
 
-%% %Inicializo filtro de partículas
+%% %Inicializo filtro de partï¿½culas
 particle_filter = create_particle_filter();
 initialize(particle_filter,const.particle_number,POSITION_LIMITS)
 particle_filter.Particles = initialize_particles(particle_filter,map);
@@ -95,9 +96,9 @@ path_counter=1;
 v_cmd=0;
 w_cmd=0;
 correction_counter=1;
-for time_step = 2:length(time_vec) % Itera sobre todo el tiempo de simulación
+for time_step = 2:length(time_vec) % Itera sobre todo el tiempo de simulaciï¿½n
     
-    if state == "Locate"              %Primer estado al que entra, las velocidades ya están cargadas en V_ref
+    if state == "Locate"              %Primer estado al que entra, las velocidades ya estï¿½n cargadas en V_ref
         state
         state = "Execute command";
         
@@ -112,7 +113,7 @@ for time_step = 2:length(time_vec) % Itera sobre todo el tiempo de simulación
         end
     elseif state=="Execute path"        %Ejecuta los caminos planeados en Plan path
         state
-        if path_counter<=length(path)    %Si terminó de realizar el camino vuelve a plan path, si va a execute command 
+        if path_counter<=length(path)    %Si terminï¿½ de realizar el camino vuelve a plan path, si va a execute command 
             desired_location=path(path_counter,:);
             speed_cmd = generate_rotate_and_translation_cmd(const.angular_speed,const.angular_speed,robot_pos,desired_location,const.sample_time);
             v_ref = [v_ref;speed_cmd(:,1)];
@@ -124,7 +125,7 @@ for time_step = 2:length(time_vec) % Itera sobre todo el tiempo de simulación
             path_counter=1;
         end
     elseif state == "Execute command"     %Ejecuta los comandos de velocidad mientras haya comandos
-                                        %Si llega a B sale va a exit, si realizó n correcciones va a plan path
+                                        %Si llega a B sale va a exit, si realizï¿½ n correcciones va a plan path
                                         % y si se quedo sin comandos va a
                                         % execute path.
         if length(w_ref) > time_step

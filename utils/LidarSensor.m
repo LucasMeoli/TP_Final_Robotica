@@ -31,7 +31,7 @@ classdef LidarSensor < matlab.System & matlab.system.mixin.CustomIcon & matlab.s
         % Setup method: Initializes all necessary graphics objects
         function setupImpl(obj)         
             % Load the occupancy grid
-            obj.map = internal.createMapFromName(obj.mapName);          
+            obj.map = createMapFromName(obj.mapName);          
         end
 
         % Step method: Outputs simulated lidar ranges based on map,
