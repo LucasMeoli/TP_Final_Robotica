@@ -128,16 +128,16 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
             if length(w_ref) > time_step
                 v_cmd = v_ref(time_step);   
                 w_cmd = w_ref(time_step);
-                particle_filter.predict(v_cmd,w_cmd,const.sample_time);
-                    if mod(time_step,const.correction_interval) == 0
-                        particle_filter.correct(ranges,map,const.lidar_max_range,"mse");
+                particle_filter.predict(v_cmd, w_cmd, const.sample_time);
+                    if mod(time_step, const.correction_interval) == 0
+                        particle_filter.correct(ranges, map, const.lidar_max_range, "mse");
                         if time_step > int32(LOCATION_END * const.outilers_time_pct) 
                             outliers_pct = 0;
                         else
                             outliers_pct = 0.1;
                         end
-                        particle_filter.Particles = generate_outliers(particle_filter,outliers_pct,map);
-                        correction_counter=correction_counter+1;
+                        particle_filter.Particles = generate_outliers(particle_filter, outliers_pct, map);
+                        correction_counter = correction_counter+1;
                     end
                 robot_pos = particle_filter.State;
                 if norm(robot_pos(1:2)-GOAL_A) < 0.2
@@ -161,7 +161,7 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
             correction_counter = 1;                     % Avanza a Execute path despues de calcular la trayectoria
             state = "Execute path";
             
-            path_to_A = A_star(MAP_IMG,robot_pos,GOAL_A);
+            path_to_A = A_star(MAP_IMG, robot_pos, GOAL_A);
             path = reduce_path(path_to_A);
         
         % Ejecuta los caminos planeados en Plan path
@@ -171,11 +171,11 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
             end
 
             if path_counter <= length(path)               % Si termino de realizar el camino vuelve a plan path, si va a execute command 
-                desired_location = path(path_counter,:);
-                speed_cmd = generate_rotate_and_translation_cmd(const.angular_speed,const.angular_speed,robot_pos,desired_location,const.sample_time);
-                v_ref = [v_ref;speed_cmd(:,1)];
-                w_ref = [w_ref;speed_cmd(:,2)];
-                path_counter = path_counter+1;
+                desired_location = path(path_counter, :);
+                speed_cmd = generate_rotate_and_translation_cmd(const.angular_speed, const.angular_speed, robot_pos, desired_location, const.sample_time);
+                v_ref = [v_ref; speed_cmd(:, 1)];
+                w_ref = [w_ref; speed_cmd(:, 2)];
+                path_counter = path_counter + 1;
                 state = "Execute command";
             else
                 state = "Plan path";
@@ -187,9 +187,9 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
                 state
             end
 
-            speed_cmd = zeros(3/const.sample_time,2);
-            v_ref = [v_ref;speed_cmd(1)];
-            w_ref = [v_ref;speed_cmd(2)];
+            speed_cmd = zeros(3/const.sample_time, 2);
+            v_ref = [v_ref; speed_cmd(1)];
+            w_ref = [v_ref; speed_cmd(2)];
             state = "Execute command";
         
         case "Exit"
@@ -218,8 +218,7 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
         % Obtener vector de distancias del lidar
         ranges_full = laserSub.LatestMessage.Ranges;
         ranges = ranges_full(1:const.lidar_downsample_factor:end);
-        %ranges = circshift(ranges,length(ranges)/2);  % verificar
-        ranges(ranges==0)=NaN; % lecturas erroneas y maxrange
+        ranges(ranges==0)=NaN;                                      % Lecturas erroneas y maxrange
         % Obtener pose del robot [x,y,yaw] de datos de odometria (integrado por encoders).
         odomQuat = [odompose.Pose.Pose.Orientation.W, odompose.Pose.Pose.Orientation.X, ...
         odompose.Pose.Pose.Orientation.Y, odompose.Pose.Pose.Orientation.Z];
@@ -233,8 +232,8 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
         [wL,wR] = inverseKinematics(diff_drive_obj,v_cmd,w_cmd);
         % Velocidad resultante
         [v,w] = forwardKinematics(diff_drive_obj,wL,wR);
-        vel_robot = [v;0;w]; % Velocidades en la terna del robot [vx;vy;w]
-        vel_world = bodyToWorld(vel_robot,pose(:,time_step-1));  % Conversion de la terna del robot a la global
+        vel_robot = [v;0;w];                                        % Velocidades en la terna del robot [vx;vy;w]
+        vel_world = bodyToWorld(vel_robot,pose(:,time_step-1));     % Conversion de la terna del robot a la global
         % Realizar un paso de integracion
         if state == "Execute command"
             pose(:,time_step) = pose(:,time_step-1) + vel_world*const.sample_time;
