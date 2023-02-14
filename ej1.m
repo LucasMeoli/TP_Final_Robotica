@@ -63,7 +63,7 @@ attachLidarSensor(visualizer, lidar);
 release(visualizer);
 
 
-%% Parametros de la simulacio½n
+%% Parametros de la simulacion
 
 SIMULATION_DURATION = 3*60;                     % Duracion total [s]
 INIT_POS = random_empty_point(map);             % Pose inicial (x y theta) del robot simulado (el robot pude arrancar en cualquier lugar valido del mapa)
