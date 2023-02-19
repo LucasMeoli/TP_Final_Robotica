@@ -29,7 +29,7 @@ map = robotics.OccupancyGrid(MAP_IMG, 25);
 %% Parametros de la Simulacion
 SIMULATION_DURATION = 3*60;          % Duracion total [s]
 INIT_POS = random_empty_point(map);% [2,1,-pi/2]
-%INIT_POS = [9, 9, -pi/2];
+INIT_POS = [9, 9, -pi/2];
 
 %% Crear sensor lidar en simulador
 lidar = LidarSensor;
@@ -138,11 +138,12 @@ for time_step = 2:length(time_vec)
     ranges(ranges<0.2) = NaN;
     %Obtengo la distancia minima de la medicion
     min_distance = distance_to_obstacle(ranges);
+    
     if (correct_orientation == false)
         % Si un objeto se encuentra a mas de 50 cm sigo derecho
         if min_distance > const.obstacle_threshold 
-            state = "move forward";
-            path_blocked=false;
+            state = "advance";
+            path_blocked = false;
         elseif min_distance < const.obstacle_threshold
         % Si un objeto se encuentra a menos de 50 cm cambio de direccion
             state = "rotate";
@@ -157,52 +158,38 @@ for time_step = 2:length(time_vec)
         [wall_orientation] = calculate_orientation(ranges,false,left);
         orientation_error = abs(angdiff(wall_orientation,orientation_angle));
         
-        if orientation_error>const.orientation_error_threshold 
-            state="rotate";
+        if orientation_error > const.orientation_error_threshold 
+            state = "rotate";
             [orientation_angle] = calculate_orientation(ranges,path_blocked,left);
         end
-        
     end
-    
-%     if time_step==900 && ~left 
-%         state="rotate";
-%         orientation_angle=-pi;
-%         left = false
-%         correct_orientation=false;
-%     end
-    
-    if state=="move forward" 
-        state;
-        distance=min_distance;%distancia/sample_time=iteraciones
-        speed_cmd=move_foward_command(distance);
-        w_ref=w_ref(1:time_step-1);
-        v_ref=v_ref(1:time_step-1);
-        v_ref = [v_ref;speed_cmd(:,1)];
-        w_ref = [w_ref;speed_cmd(:,2)];
-        state="execute command";     
-    elseif state=="rotate" && correct_orientation==false
-       state;
-       if path_blocked==false
-          correct_orientation=true;
-       end
-       
-       orientation_angle;
-       speed_cmd=rotate_command(orientation_angle);
-       w_ref=w_ref(1:time_step-1);
-       v_ref=v_ref(1:time_step-1);
-       v_ref = [v_ref;speed_cmd(:,1)];
-       w_ref = [w_ref;speed_cmd(:,2)];
-       state="execute command";
-        
-    elseif state=="execute command"
+     
+    switch state
+        case "advance" 
+            speed_cmd = move_foward_command(min_distance);
+            w_ref = w_ref(1:time_step-1);
+            v_ref = v_ref(1:time_step-1);
+            v_ref = [v_ref;speed_cmd(:,1)];
+            w_ref = [w_ref;speed_cmd(:,2)];
+            state = "command";  
+        case "rotate" 
+           speed_cmd = rotate_command(orientation_angle);
+           w_ref = w_ref(1:time_step-1);
+           v_ref = v_ref(1:time_step-1);
+           v_ref = [v_ref;speed_cmd(:,1)];
+           w_ref = [w_ref;speed_cmd(:,2)];
+           state = "command";
+
+           if path_blocked == false
+              correct_orientation = true;
+           end
     end
     
     figure(1)
-    if time_step==2 ||mod(time_step,10)==0
-        
+    if (time_step == 2) || (mod(time_step,10) == 0)
         ranges=process_measurement(slam_obj,ranges);
         [scans_slam,est_pose] = scansAndPoses(slam_obj);
-        est_map = buildMap(scans_slam,est_pose,MAP_RES,const.lidar_max_range);
+        est_map = buildMap(scans_slam,est_pose,MAP_RES,20);
         
         show(est_map);
         hold on;
@@ -211,10 +198,9 @@ for time_step = 2:length(time_vec)
         quiver(est_pose(end,1),est_pose(end,2),cos(est_pose(end,3)),sin(est_pose(end,3)),0.5,'filled','LineWidth',2);
         axis([-23 23 -19 19])
         hold off;
-        
-    
     else
         visualizer(pose(:,time_step),ranges)
     end
-        waitfor(robot_sample_rate);
+    
+    waitfor(robot_sample_rate);
 end
