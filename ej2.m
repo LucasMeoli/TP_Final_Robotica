@@ -1,15 +1,14 @@
-%% Robot diferencial con lidar
-% Robotica Movil - 2022 1c
-% Funciona con MATLAB R2018a
+%% Ejercicio 2 - Partiendo de lo Desconocido
 close all
 clear all
 clc 
 
 addpath utils
 addpath functions
-
-SIMULATE_LIDAR_NOISE = false; %simula datos no validos del lidar real, probar si se la banca
-USE_ROOMBA = false;  % false para desarrollar usando el simulador, true para conectarse al robot real
+% Simula datos no validos del lidar real
+SIMULATE_LIDAR_NOISE = false; 
+% false para desarrollar usando el simulador, true para conectarse al robot real
+USE_ROOMBA = false;  
 
 %% Roomba
 if USE_ROOMBA   % si se usa el robot real, se inicializa la conexion    
@@ -19,17 +18,19 @@ end
 %Objeto con constantes
 const = Constants;
 % creacion del Simulador de robot diferencial
-diff_drive_obj = DifferentialDrive(const.wheel_separation,const.wheel_separation); 
+diff_drive_obj = DifferentialDrive(const.wheel_separation, const.wheel_separation); 
 
-%% Creacion del entorno
+%% Cargar mapa
 load maps/2022b_tp_map.mat
 MAP_IMG = 1-double(imread('maps/2022b_tp_map.tiff'))/255;
 map = robotics.OccupancyGrid(MAP_IMG, 25);
 
 %% Parametros de la Simulacion
-SIMULATION_DURATION = 3*60;          % Duracion total [s]
-INIT_POS = random_empty_point(map);% [2,1,-pi/2]
+% Duracion total [s]
+SIMULATION_DURATION = 3 * 60;          
+% Determinación de la posición inicial
 INIT_POS = [9, 9, -pi/2];
+%INIT_POS = random_empty_point(map);
 
 %% Crear sensor lidar en simulador
 lidar = LidarSensor;
@@ -38,10 +39,13 @@ NUM_SCANS = 513/const.lidar_downsample_factor;
 lidar.scanAngles = linspace(const.lidar_angle_start, const.lidar_angle_end, NUM_SCANS);
 lidar.maxRange = const.lidar_max_range;
 
-% Inicializar vectores de tiempo, entrada y pose
-time_vec = 0:const.sample_time:SIMULATION_DURATION;     % Vector de Tiempo para duracion total
-LOCATION_END = int32(2/const.sample_time);              %Iteraciones hasta ubicarse
-pose = zeros(3,numel(time_vec));                        % Inicializar matriz de pose
+%% Inicializar vectores de tiempo, entrada y pose
+% Vector de Tiempo para duracion total
+time_vec = 0:const.sample_time:SIMULATION_DURATION;
+%Iteraciones hasta ubicarse
+LOCATION_END = int32(2/const.sample_time);  
+% Inicializar matriz de pose
+pose = zeros(3,numel(time_vec));                       
 pose(:,1) = INIT_POS;
 
 %% Simulacion
@@ -75,15 +79,15 @@ slam_obj.LoopClosureThreshold = 400;
 % Radio de búsqueda para detección de cierre de bucle. 
 % Aumentar este radio afecta el rendimiento al aumentar el tiempo de búsqueda. 
 slam_obj.LoopClosureSearchRadius = 2;
-slam_obj.MovementThreshold=[0.5,0.25];
+slam_obj.MovementThreshold = [0.5,0.25];
+
+%% Inicialización del estado del robot y de las variables
 state = "rotate";
 est_map = [];
 est_pose = [0,0,0];
 orientation_angle = 0;
-normal = [0,0];
 path_blocked = true;
 correct_orientation = false;
-left = false;
 
 % Bucle que itera sobre todo el tiempo de simulación
 for time_step = 2:length(time_vec) 
@@ -92,8 +96,8 @@ for time_step = 2:length(time_vec)
     w_cmd = w_ref(time_step-1);
     
     %% a partir de aca el robot real o el simulador ejecutan v_cmd y w_cmd:
-    if USE_ROOMBA       % para usar con el robot real
-        
+    % para usar con el robot real
+    if USE_ROOMBA       
         % Enviar comando de velocidad
         cmdMsg.Linear.X = v_cmd;
         cmdMsg.Angular.Z = w_cmd;
@@ -112,10 +116,9 @@ for time_step = 2:length(time_vec)
         odomQuat = [odompose.Pose.Pose.Orientation.W, odompose.Pose.Pose.Orientation.X, ...
         odompose.Pose.Pose.Orientation.Y, odompose.Pose.Pose.Orientation.Z];
         odomRotation = quat2eul(odomQuat);
-        pose(:,time_step) = [odompose.Pose.Pose.Position.X + INIT_POS(1); odompose.Pose.Pose.Position.Y+ INIT_POS(2); odomRotation(1)];
-    
-    else        % para usar el simulador
-   
+        pose(:,time_step) = [odompose.Pose.Pose.Position.X + INIT_POS(1); odompose.Pose.Pose.Position.Y+ INIT_POS(2); odomRotation(1)]
+    % para usar el simulador
+    else
         % Mover el robot segun los comandos generados (ya vienen con ruido)
         [wL,wR] = inverseKinematics(diff_drive_obj,v_cmd,w_cmd);
         % Velocidad resultante
@@ -126,6 +129,7 @@ for time_step = 2:length(time_vec)
         pose(:,time_step) = pose(:,time_step-1) + vel_world*const.sample_time; 
         % Tomar nueva medicion del lidar
         ranges = lidar(pose(:,time_step));
+        
         if SIMULATE_LIDAR_NOISE
             % Simular ruido de un lidar ruidoso (probar a ver si se la banca)
             chance_de_medicion_no_valida = 0.17;
@@ -147,7 +151,7 @@ for time_step = 2:length(time_vec)
         elseif min_distance < const.obstacle_threshold
         % Si un objeto se encuentra a menos de 50 cm cambio de direccion
             state = "rotate";
-            [orientation_angle] = calculate_orientation(ranges,path_blocked,left);
+            [orientation_angle] = calculate_orientation(ranges,path_blocked);
             path_blocked = true;
         end
     end
@@ -155,12 +159,12 @@ for time_step = 2:length(time_vec)
     correct_orientation = false;
     
     if (w_cmd == 0) && (mod(time_step,20) == 0)
-        [wall_orientation] = calculate_orientation(ranges,false,left);
+        [wall_orientation] = calculate_orientation(ranges,false);
         orientation_error = abs(angdiff(wall_orientation,orientation_angle));
         
         if orientation_error > const.orientation_error_threshold 
             state = "rotate";
-            [orientation_angle] = calculate_orientation(ranges,path_blocked,left);
+            [orientation_angle] = calculate_orientation(ranges,path_blocked);
         end
     end
      
@@ -186,11 +190,12 @@ for time_step = 2:length(time_vec)
     end
     
     figure(1)
-    if (time_step == 2) || (mod(time_step,10) == 0)
-        ranges=process_measurement(slam_obj,ranges);
+    % Definimos una taza de actualizacion para evitar mostrar en cada
+    % step el mapa obtenido
+    if (mod(time_step,10) == 0)
+        ranges = process_measurement(slam_obj,ranges);
         [scans_slam,est_pose] = scansAndPoses(slam_obj);
         est_map = buildMap(scans_slam,est_pose,MAP_RES,20);
-        
         show(est_map);
         hold on;
         scatter(est_pose(end,1),est_pose(end,2),'filled','LineWidth',2);
@@ -204,3 +209,8 @@ for time_step = 2:length(time_vec)
     
     waitfor(robot_sample_rate);
 end
+
+
+save('obtained_map.mat','est_map','map');
+
+

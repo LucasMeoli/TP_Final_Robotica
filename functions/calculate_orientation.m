@@ -1,4 +1,4 @@
-function [orientation_angle]=calculate_orientation(ranges,blocked_path,left)
+function [orientation_angle]=calculate_orientation(ranges,blocked_path)
 %Funciona para determinar cuanto queremos que rote una vez que las
 %mediciones determinó que la distancia minima medida es menor al umbral
 %establecido.
