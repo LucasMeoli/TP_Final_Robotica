@@ -56,8 +56,8 @@ lidar.maxRange = const.lidar_max_range;
 %% Crear visualizacion
 
 visualizer = Visualizer2D();
-visualizer.hasWaypoints=true;
-visualizer.hasParticles=true;
+visualizer.hasWaypoints = true;
+visualizer.hasParticles = true;
 visualizer.mapName = 'map';
 attachLidarSensor(visualizer, lidar);
 release(visualizer);
