@@ -19,18 +19,8 @@ function n = neighbors(cell, map_dimensions)
               continue;
           end
           
-          n = [n; [x,y] ]; %Se agregan los vecinos que cumplan con las condiciones de ser vecinos
+          n = [n; [x,y] ]; 
       end
   end
-  
-  
-  %%% YOUR CODE FOR CALCULATING THE NEIGHBORS OF A CELL GOES HERE
-  
-  % Return nx2 vector with the cell coordinates of the neighbors. 
-  % Because planning_framework.m defines the cell positions as pos = [cell_y, cell_x],
-  % make sure to return the neighbors as [n1_y, n1_x; n2_y, n2_x; ... ]
-%%
-  % Los comentarios de arriba informan que la posición en las celdas están definidas 
-  % como pos = [cell_y, cell_x], pero si se implementa de esa forma no se llega al resultado esperado 
 end
 

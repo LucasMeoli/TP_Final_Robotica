@@ -1,12 +1,6 @@
-% Función para calcular el likelikhood de la medicion de cada partícula
-% es llamada por robotics.ParticleFilter.correct()
-% Permite calcular el likelhood con el modelo de medición o con el error
-% cuadrático medio
-% El mayor problema es como tratar los NaN
 function likelihood = measurement_model(particle_filter, predicted_particles, measurement,varargin)
 
-    SIGMA_MODEL = 0.1; %0.5;
-    % El sensor termina teniendo 171 mediciones, Juan lo reducia a 15
+    SIGMA_MODEL = 0.1; 
     ANGLE_LENGTH = 15; 
     DOWNSample_FACTOR = ceil(length(measurement)/ANGLE_LENGTH);
     
@@ -26,18 +20,8 @@ function likelihood = measurement_model(particle_filter, predicted_particles, me
     % Creo el vector de index (vector del 1 al 171)
     meas_index = (1:length(measurement))';
     
-    % En vez de interpolarlo linealmente a los nan. Los obtengo por el
-    % anterior o el siguiente en el arreglo de mediciones
-    %measurement = fillmissing(measurement,'nearest'); 
-    %measurement = fillmissing(measurement,'linear');
-    
-    % El tema aca es que hacer con las mediciones que no son NaN, en nuestro
-    % caso suele darse cuando no hay medicion porque la pared esta a mas de
-    % 5 metros. En principio iguale eso con 5
-    %Opciones 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', 'pchip', 'movmean', or 'movmedian'
     measurement = fillmissing(measurement,'constant',5); 
-    %measurement = fillmissing(measurement,'linear');
-    
+
     x_lims = map.XWorldLimits;
     y_lims = map.YWorldLimits;
     
@@ -62,13 +46,11 @@ function likelihood = measurement_model(particle_filter, predicted_particles, me
             particle_measurement(isnan(particle_measurement)) = max_range;
             %particle_measurement = downsample(particle_measurement,DOWNSample_FACTOR);
             
-            %length(particle_measurement)
-            %length(measurement)
             likelihood(row) = 1/immse(measurement,particle_measurement);
         else
             likelihood(row) = 0;
-        end % En del if primero
+        end 
         
-        likelihood = likelihood;%Normalizo ->?
-    end % end del for
+        likelihood = likelihood;
+    end 
 end
