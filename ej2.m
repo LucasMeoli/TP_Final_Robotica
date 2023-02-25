@@ -176,7 +176,7 @@ for time_step = 2:length(time_vec)
         if min_distance > const.min_distance_to_obstacle 
             state = "advance";
             change_orientation = false;
-        elseif min_distance < const.min_distance_to_obstacle
+        else
         % Si se encuentra a menos de 50 cm el robot cambia de dirección
             state = "rotate";
             [angle_orientation] = calculate_orientation(ranges,change_orientation);
@@ -258,6 +258,7 @@ end
 
 save('maps/obtained_map.mat','estimated_map','map');
 mat = occupancyMatrix(estimated_map);
+mat = 1-mat;
 
 %% El mapa se dibujo con los colores invertidos, deberia ver como modificar eso
 imwrite(mat(:, :, 1), 'maps/obtained_map.tiff');
