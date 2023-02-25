@@ -5,7 +5,7 @@ function [angle_orientation]=calculate_orientation(ranges, change_orientation)
 
     const = Constants;
     ranges = fillmissing(ranges,'constant',5);
-
+    
     % Determino el paso de las mediciones del LIDAR.
     step_meas = (const.lidar_angle_end - const.lidar_angle_start)/length(ranges);
     
@@ -17,7 +17,7 @@ function [angle_orientation]=calculate_orientation(ranges, change_orientation)
         angle_init_meas = -const.angle_range/2;
         angle_orientation = 0;
     else
-        index_init_meas = 1;
+        index_init_meas = length(ranges) - int32(const.angle_range/(step_meas));
         angle_init_meas = const.lidar_angle_start;
         angle_orientation = -pi/2; 
     end

@@ -41,6 +41,7 @@ map = robotics.OccupancyGrid(MAP_IMG,25);
 SIMULATION_DURATION = 3 * 60;          
 % Determinación de la posición inicial
 INIT_POS = [9, 9, -pi/2];
+%INIT_POS = [6, 4, pi/2];
 
 
 %% Crear sensor lidar en simulador
@@ -260,7 +261,6 @@ save('maps/obtained_map.mat','estimated_map','map');
 mat = occupancyMatrix(estimated_map);
 mat = 1-mat;
 
-%% El mapa se dibujo con los colores invertidos, deberia ver como modificar eso
 imwrite(mat(:, :, 1), 'maps/obtained_map.tiff');
 for k = 2:size(mat, 3)
   imwrite(mat(:, :, k), 'maps/obtained_map.tiff', 'WriteMode', 'append');
