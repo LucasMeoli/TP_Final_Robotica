@@ -96,7 +96,7 @@ initialize(particle_filter, const.particle_number, POSITION_LIMITS)
 particle_filter.Particles = initialize_particles(particle_filter, map);
 
 % Inicializo variables
-state = "Locate";                               % Posibles estados: "Locate", "Plan path", "Execute path", "Execute command", "Delay" y "Exit"
+state = "Locate";                               % Posibles estados: "Locate", "Plan path", "Execute path", "Execute command" y "Exit"
 v_ref = zeros(LOCATION_END, 1);
 w_ref = const.angular_speed*ones(LOCATION_END, 1);
 path = [];
@@ -181,17 +181,7 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
                 state = "Plan path";
                 path_counter = 1;
             end
-        
-        case "Delay"
-            if DEBUG
-                state
-            end
-
-            speed_cmd = zeros(3/const.sample_time, 2);
-            v_ref = [v_ref; speed_cmd(1)];
-            w_ref = [v_ref; speed_cmd(2)];
-            state = "Execute command";
-        
+               
         case "Exit"
             if DEBUG
                 state
