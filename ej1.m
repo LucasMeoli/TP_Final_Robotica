@@ -7,9 +7,10 @@ clc
 addpath utils
 addpath functions
 
-SIMULATE_LIDAR_NOISE = true;                    % Simula datos no validos del lidar real, probar si se la banca
-USE_ROOMBA = false;                             % False para desarrollar usando el simulador, true para conectarse al robot real
+SIMULATE_LIDAR_NOISE = false;                    % Simula datos no validos del lidar real, probar si se la banca
+USE_ROOMBA = true;                             % False para desarrollar usando el simulador, true para conectarse al robot real
 DEBUG = false;                                  % Imprime logs utiles para debugging
+DEBUG_PLOTS = false;
 
 %% Roomba
 
@@ -240,10 +241,13 @@ for time_step = 2:length(time_vec)              % Itera sobre todo el tiempo de 
         end
     end
     
-    show_particles = [particle_filter.Particles(:,1), particle_filter.Particles(:,2)];
-    %markings = [WAYPOINTS; particle_filter.State(1:2); show_particles];
-    markings = [WAYPOINTS; particle_filter.State(1:2)];
-    visualizer(pose(:,time_step), show_particles, markings, ranges)
+    if DEBUG_PLOTS
+        show_particles = [particle_filter.Particles(:,1), particle_filter.Particles(:,2)];
+        %markings = [WAYPOINTS; particle_filter.State(1:2); show_particles];
+        markings = [WAYPOINTS; particle_filter.State(1:2)];
+        visualizer(pose(:,time_step), show_particles, markings, ranges)
+    end
+
     waitfor(robot_sample_rate);
 
 end

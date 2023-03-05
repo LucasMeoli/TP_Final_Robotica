@@ -7,10 +7,9 @@ addpath utils
 addpath functions
 
 SIMULATE_LIDAR_NOISE = false;       % Simula datos no validos del lidar real
-USE_ROOMBA = false;                 % False para desarrollar usando el simulador, true para conectarse al robot real
-DEBUG_PLOTS = true;
+USE_ROOMBA = true;                 % False para desarrollar usando el simulador, true para conectarse al robot real
+DEBUG_PLOTS = false;
 DEBUG_STATE = false;
-
 
 %% Roomba
 
